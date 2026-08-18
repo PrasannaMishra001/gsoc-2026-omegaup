@@ -1,12 +1,12 @@
-# Google Summer of Code 2026 — omegaUp
+# Google Summer of Code 2026: omegaUp
 
 ## Cronjob Optimization
 
 **Contributor:** Prasanna Mishra ([@PrasannaMishra001](https://github.com/PrasannaMishra001))
-**Organisation:** [omegaUp](https://omegaup.com) — a free competitive programming and learning platform used across Latin America
+**Organisation:** [omegaUp](https://omegaup.com): a free competitive programming and learning platform used across Latin America
 **Mentors:** [@pabo99](https://github.com/pabo99) (Juan Pablo), [@Ankitsinghsisodya](https://github.com/Ankitsinghsisodya) (Ankit)
 **Project size:** Large (350 hours)
-**Coding period:** 26 May 2026 — 24 August 2026
+**Coding period:** 26 May 2026: 24 August 2026
 
 **Everything in one place:**
 [all my pull requests](https://github.com/omegaup/omegaup/pulls?q=is%3Apr+author%3APrasannaMishra001) ·
@@ -22,9 +22,9 @@
 2. [The problem, in plain terms](#2-the-problem-in-plain-terms)
 3. [What I proposed](#3-what-i-proposed)
 4. [What it became, and why](#4-what-it-became-and-why)
-5. [Project 1 — the Cron Control Plane](#5-project-1--the-cron-control-plane)
-6. [Project 2 — scheduled recommendation model training](#6-project-2--scheduled-recommendation-model-training)
-7. [Project 3 — automated problem health checks](#7-project-3--automated-problem-health-checks)
+5. [Project 1: the Cron Control Plane](#5-project-1-the-cron-control-plane)
+6. [Project 2: scheduled recommendation model training](#6-project-2-scheduled-recommendation-model-training)
+7. [Project 3: automated problem health checks](#7-project-3-automated-problem-health-checks)
 8. [Work outside the cron project](#8-work-outside-the-cron-project)
 9. [Every pull request](#9-every-pull-request)
 10. [Every issue](#10-every-issue)
@@ -47,7 +47,7 @@ That matters for one reason. By May I already knew where things lived, how the r
 
 omegaUp runs a handful of background jobs on a schedule. They recompute the rankings, hand out badges, aggregate the feedback students leave on problems, and train the model that suggests what to solve next. In production, three of them run once a day at fixed times, and their ordering is enforced by nothing more than the gap on the clock between them.
 
-The thing I kept coming back to is that **nobody was watching**. There was no record that a job had run at all. If last night's ranking job failed, nothing said so, and the first sign would be a student noticing their solve had not counted. Nothing stopped two copies of the same job running at once, which matters because the ranking job used to delete every row of the rankings table and write fresh ones — two copies doing that simultaneously can leave you with half a leaderboard, and no error is raised. And if an admin wanted to re-run a job, the only way was to get shell access to a production pod.
+The thing I kept coming back to is that **nobody was watching**. There was no record that a job had run at all. If last night's ranking job failed, nothing said so, and the first sign would be a student noticing their solve had not counted. Nothing stopped two copies of the same job running at once, which matters because the ranking job used to delete every row of the rankings table and write fresh ones: two copies doing that simultaneously can leave you with half a leaderboard, and no error is raised. And if an admin wanted to re-run a job, the only way was to get shell access to a production pod.
 
 None of that is an exotic failure. It is the ordinary, boring way scheduled work goes wrong, and it is invisible precisely because it is silent.
 
@@ -92,7 +92,7 @@ So the second half became three projects that share one foundation. The control 
 
 ---
 
-## 5. Project 1 — the Cron Control Plane
+## 5. Project 1: the Cron Control Plane
 
 Epic: [#9992](https://github.com/omegaup/omegaup/issues/9992). Twelve pull requests, built as a stack where each one depends on the one below it.
 
@@ -139,7 +139,7 @@ The work splits into a Python side that writes and a PHP side that reads, and th
 
 ---
 
-## 6. Project 2 — scheduled recommendation model training
+## 6. Project 2: scheduled recommendation model training
 
 Parent issue: [#10049](https://github.com/omegaup/omegaup/issues/10049). Three pull requests: [#10050](https://github.com/omegaup/omegaup/pull/10050), [#10051](https://github.com/omegaup/omegaup/pull/10051), [#10052](https://github.com/omegaup/omegaup/pull/10052).
 
@@ -157,7 +157,7 @@ I deliberately did not build model versioning and rollback, even though it was t
 
 ---
 
-## 7. Project 3 — automated problem health checks
+## 7. Project 3: automated problem health checks
 
 Parent issue: [#10064](https://github.com/omegaup/omegaup/issues/10064). Three pull requests: [#10065](https://github.com/omegaup/omegaup/pull/10065), [#10066](https://github.com/omegaup/omegaup/pull/10066), [#10069](https://github.com/omegaup/omegaup/pull/10069).
 
@@ -319,7 +319,7 @@ Thirty issues, each one written before the pull request that closes it. The thre
 
 **Tests before the thing that needs them.** The cron scripts had no test infrastructure at all when I started. Not thin coverage, none. There was a good reason it had been skipped: these scripts talk straight to the database, so every function expects a live MySQL connection, and testing "does the ranking logic compute the right order" meant standing up a database with the right data in it first. Slow, awkward, breaks on other people's machines. So it never got done.
 
-I built a fake database instead ([#9883](https://github.com/omegaup/omegaup/pull/9883)) — a `MockCursor` and `MockConnection` that behave enough like the real thing that the existing cron code runs against them unchanged. Only then could the ranking and badge logic be tested ([#9889](https://github.com/omegaup/omegaup/pull/9889), [#9920](https://github.com/omegaup/omegaup/pull/9920)).
+I built a fake database instead ([#9883](https://github.com/omegaup/omegaup/pull/9883)): a `MockCursor` and `MockConnection` that behave enough like the real thing that the existing cron code runs against them unchanged. Only then could the ranking and badge logic be tested ([#9889](https://github.com/omegaup/omegaup/pull/9889), [#9920](https://github.com/omegaup/omegaup/pull/9920)).
 
 This is the part I would defend hardest if someone called it box ticking. Look at what I built later: a button that reruns jobs, and a guardrail that decides whether data goes live. Both are only safe if one property holds, which is that **running a job twice leaves things exactly as running it once did**. If that is true, a rerun is harmless and the button is a feature. If it is not, the button is a way to corrupt production data with one click and I should not have built it. The chain is: no fake database, no tests, no proof, and the rerun button is irresponsible.
 

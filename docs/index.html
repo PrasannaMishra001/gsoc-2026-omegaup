@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cronjob Optimization :: GSoC 2026 :: omegaUp :: Prasanna Mishra</title>
+<meta name="description" content="Google Summer of Code 2026 final report. Building a cron control plane for omegaUp: run history, overlap protection, an admin dashboard, a safe rerun, and two more projects built on top of it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --fg:#0f172a; --muted:#64748b; --faint:#94a3b8;
+  --line:#e2e8f0; --soft:#f8fafc; --card:#ffffff;
+  --blue:#2563eb; --violet:#7c3aed; --green:#059669; --amber:#d97706; --rose:#e11d48;
+  --sidebar:264px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1120; --fg:#e2e8f0; --muted:#94a3b8; --faint:#64748b;
+    --line:#1e293b; --soft:#0f172a; --card:#0f172a;
+    --blue:#60a5fa; --violet:#a78bfa; --green:#34d399; --amber:#fbbf24; --rose:#fb7185;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em}
+code{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:.1em .38em}
+
+/* sidebar */
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;overflow-y:auto;
+  border-right:1px solid var(--line);background:var(--soft);padding:28px 0 40px}
+.brand{padding:0 24px 20px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.brand .tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:#fff;background:linear-gradient(90deg,var(--blue),var(--violet));
+  padding:4px 9px;border-radius:20px;margin-bottom:10px}
+.brand h1{font-size:17px;margin:0 0 4px;font-weight:800;letter-spacing:-.02em}
+.brand p{margin:0;font-size:12.5px;color:var(--muted)}
+.nav{padding:0 12px}
+.nav .grp{font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--faint);padding:16px 12px 6px}
+.nav a{display:block;padding:7px 12px;border-radius:7px;font-size:13.5px;color:var(--muted);
+  border-left:2px solid transparent}
+.nav a:hover{background:var(--bg);color:var(--fg);text-decoration:none}
+.nav a.on{color:var(--blue);background:var(--bg);border-left-color:var(--blue);font-weight:600}
+.side-foot{padding:18px 24px 0;margin-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--faint)}
+.side-foot a{display:block;padding:3px 0;color:var(--muted);font-size:12.5px}
+
+/* layout */
+.wrap{margin-left:var(--sidebar);max-width:920px;padding:56px 56px 120px}
+section{scroll-margin-top:24px}
+h2{font-size:27px;font-weight:800;letter-spacing:-.025em;margin:56px 0 6px;padding-top:8px}
+h2:first-of-type{margin-top:0}
+h3{font-size:18.5px;font-weight:700;margin:34px 0 8px;letter-spacing:-.01em}
+h4{font-size:15px;font-weight:700;margin:22px 0 6px}
+p{margin:0 0 16px}
+.lede{font-size:18px;color:var(--muted);line-height:1.65;margin-bottom:28px}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+hr{border:0;border-top:1px solid var(--line);margin:48px 0}
+
+/* hero */
+.hero{border:1px solid var(--line);border-radius:16px;padding:34px 34px 30px;background:
+  linear-gradient(180deg,var(--soft),transparent);margin-bottom:14px}
+.hero h2{font-size:33px;margin:0 0 10px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.pill{font-size:12px;padding:5px 11px;border-radius:20px;background:var(--bg);
+  border:1px solid var(--line);color:var(--muted)}
+.pill b{color:var(--fg);font-weight:600}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:26px 0 8px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:16px 14px;background:var(--card);text-align:center}
+.stat .n{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.stat .l{font-size:11.5px;color:var(--muted);margin-top:4px}
+.stat.b .n{color:var(--blue)} .stat.g .n{color:var(--green)}
+.stat.v .n{color:var(--violet)} .stat.a .n{color:var(--amber)}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}
+.card{border:1px solid var(--line);border-radius:13px;padding:20px;background:var(--card)}
+.card .k{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.card h4{margin:0 0 7px;font-size:15.5px}
+.card p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.6}
+.k.b{color:var(--blue)} .k.v{color:var(--violet)} .k.g{color:var(--green)}
+
+/* callouts */
+.note{border-left:3px solid var(--blue);background:var(--soft);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:22px 0;font-size:14.5px}
+.note.warn{border-left-color:var(--amber)}
+.note.win{border-left-color:var(--green)}
+.note strong{font-weight:700}
+.quote{border-left:3px solid var(--violet);padding:6px 0 6px 20px;margin:22px 0;
+  font-style:italic;color:var(--muted);font-size:15px}
+.quote cite{display:block;font-style:normal;font-size:12.5px;color:var(--faint);margin-top:8px}
+
+/* tables */
+.tw{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:11px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{text-align:left;padding:11px 14px;background:var(--soft);font-weight:700;font-size:11.5px;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+tbody tr:hover{background:var(--soft)}
+.s{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.s.m{background:rgba(5,150,105,.13);color:var(--green)}
+.s.o{background:rgba(37,99,235,.13);color:var(--blue)}
+.s.d{background:rgba(100,116,139,.15);color:var(--muted)}
+.s.c{background:rgba(225,29,72,.12);color:var(--rose)}
+
+/* figures */
+figure{margin:26px 0}
+figure img{width:100%;border:1px solid var(--line);border-radius:11px;display:block;background:var(--card)}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:9px;text-align:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid2 figure{margin:0}
+.wide{margin-left:-40px;margin-right:-40px}
+.wide img{border-radius:13px}
+
+ul,ol{margin:0 0 16px;padding-left:22px}
+li{margin-bottom:7px}
+
+@media (max-width:1080px){
+  .sidebar{display:none}
+  .wrap{margin-left:0;padding:32px 20px 80px;max-width:100%}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .cards{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .wide{margin-left:0;margin-right:0}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">
+    <span class="tag">GSoC 2026</span>
+    <h1>Cronjob Optimization</h1>
+    <p>omegaUp &middot; Prasanna Mishra</p>
+  </div>
+  <div class="nav">
+    <div class="grp">Overview</div>
+    <a href="#summary" class="on">In one minute</a>
+    <a href="#problem">The problem</a>
+    <a href="#architecture">How it fits together</a>
+    <div class="grp">The three projects</div>
+    <a href="#p1">1 &middot; Cron Control Plane</a>
+    <a href="#p2">2 &middot; Model training</a>
+    <a href="#p3">3 &middot; Problem health</a>
+    <div class="grp">The work</div>
+    <a href="#scope">Scope, and how it grew</a>
+    <a href="#other">Work outside the project</a>
+    <a href="#prs">Every pull request</a>
+    <a href="#issues">Every issue</a>
+    <div class="grp">Reflection</div>
+    <a href="#practice">How I worked</a>
+    <a href="#challenges">Challenges</a>
+    <a href="#status">Where it stands</a>
+    <a href="#next">What comes next</a>
+  </div>
+  <div class="side-foot">
+    <a href="https://github.com/omegaup/omegaup/pulls?q=is%3Apr+author%3APrasannaMishra001">All pull requests &rarr;</a>
+    <a href="https://github.com/omegaup/omegaup/issues/9992">The epic (#9992) &rarr;</a>
+    <a href="https://github.com/omegaup/omegaup/discussions/9972">Progress tracker &rarr;</a>
+    <a href="https://github.com/PrasannaMishra001/gsoc-2026-omegaup">This report on GitHub &rarr;</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<section id="summary">
+<div class="hero">
+  <div class="eyebrow">Google Summer of Code 2026 &middot; omegaUp</div>
+  <h2>I made omegaUp's background jobs visible.</h2>
+  <p class="lede">omegaUp runs a handful of jobs every night: rankings, badges, feedback, the model that suggests what to solve next. Nobody was watching any of them. If one failed, nothing said so, and the first sign was a student noticing their solve had not counted. I built the layer that watches them.</p>
+  <div class="meta">
+    <span class="pill"><b>Mentors</b> Juan Pablo, Ankit</span>
+    <span class="pill"><b>Size</b> Large, 350 hours</span>
+    <span class="pill"><b>Period</b> 26 May to 24 Aug 2026</span>
+    <span class="pill"><b>Language</b> Python, PHP, TypeScript, MySQL</span>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat b"><div class="n">31</div><div class="l">pull requests raised</div></div>
+  <div class="stat g"><div class="n">17</div><div class="l">merged into omegaUp</div></div>
+  <div class="stat v"><div class="n">30</div><div class="l">issues written first</div></div>
+  <div class="stat a"><div class="n">3</div><div class="l">projects, one foundation</div></div>
+</div>
+
+<h3>If you read nothing else</h3>
+<div class="cards">
+  <div class="card">
+    <div class="k b">Project 1</div>
+    <h4>The Cron Control Plane</h4>
+    <p>A registry of every job, a history of every run, a lock so two copies can never overlap, an admin page to see it all, and a rerun button that is safe to press.</p>
+  </div>
+  <div class="card">
+    <div class="k v">Project 2</div>
+    <h4>Model training, measured</h4>
+    <p>The problem recommendation model is now trained on a schedule, its quality is recorded every time, and a guardrail refuses to publish a model worse than the one already serving students.</p>
+  </div>
+  <div class="card">
+    <div class="k g">Project 3</div>
+    <h4>Problem health checks</h4>
+    <p>A nightly job that finds problems which quietly stopped working, so the platform hears about them from itself rather than from a frustrated student.</p>
+  </div>
+</div>
+
+<div class="note win">
+<strong>The bit I am proudest of.</strong> Projects 2 and 3 are each just another job plugged into the foundation from project 1. When I built the health check job I wrote no dashboard code for it at all. It runs through the shared runner, so it appeared on the admin page by itself. That is the moment the foundation paid for itself.
+</div>
+</section>
+
+<hr>
+
+<section id="problem">
+<div class="eyebrow">The problem</div>
+<h2>Silent failure is the default</h2>
+
+<p>omegaUp is a free competitive programming platform used across Latin America. Behind it, a few Python scripts run on a schedule and do the unglamorous work: recompute the rankings, hand out badges, aggregate the feedback students leave on problems, train the recommendation model.</p>
+
+<p>In production only three of them are actually scheduled, and the order they run in is enforced by nothing more than the gap on the clock between them. What kept bothering me is that <strong>nobody was watching</strong>.</p>
+
+<ul>
+<li>There was no record that a job had run at all, so a failure last night was invisible today.</li>
+<li>Nothing stopped two copies of the same job running at once. The ranking job used to delete every row of the rankings table and write fresh ones, so two copies overlapping could leave half a leaderboard. No error is raised when that happens. It just silently produces wrong data.</li>
+<li>An admin who wanted to rerun a job needed shell access to a production pod.</li>
+<li>A student had no way to know how fresh the rankings were.</li>
+</ul>
+
+<p>None of that is exotic. It is the ordinary way scheduled work goes wrong, and it stays hidden precisely because it is quiet.</p>
+
+<div class="note">
+<strong>One detail that framed the whole project.</strong> While reading omegaUp's production deployment repository I found a commit from December 2021 that says <em>"Make update-ranks only run once a day for now"</em>. The <em>for now</em> had lasted five years. I also found that the recommendation model is never trained in production at all, because that job was never added to the schedule.
+</div>
+</section>
+
+<hr>
+
+<section id="architecture">
+<div class="eyebrow">Architecture</div>
+<h2>How it fits together</h2>
+<p class="lede">Everything below is one idea: every job goes through the same small piece of code on its way in and out, and that is what makes all the rest possible.</p>
+
+<figure class="wide">
+  <img src="assets/architecture.svg" alt="Architecture of the omegaUp cron control plane, showing scheduled jobs entering a shared runner, which writes to the registry and history tables, which are read by the admin API and the dashboard, plus the rerun queue and the two later projects plugging into the same runner.">
+  <figcaption>The control plane on top. The two later projects underneath, entering through the same runner.</figcaption>
+</figure>
+</section>
+
+<hr>
+
+<section id="p1">
+<div class="eyebrow">Project 1 &middot; epic <a href="https://github.com/omegaup/omegaup/issues/9992">#9992</a></div>
+<h2>The Cron Control Plane</h2>
+<p class="lede">Twelve pull requests, built as a stack where each one depends on the one below it, cutting from the database through to the page.</p>
+
+<h3>A registry and a history</h3>
+<p><a href="https://github.com/omegaup/omegaup/pull/9995">#9995</a> adds two tables. One lists the jobs that exist, with their schedule and an enabled flag. The other stores one row per execution: when it started and finished, how long it took, whether it worked, how many rows it touched, the timing of each step inside it, and the error text if it failed. <a href="https://github.com/omegaup/omegaup/pull/9996">#9996</a> wraps both in typed data access objects so nothing else writes raw SQL against them.</p>
+
+<h3>One shared runner</h3>
+<p><a href="https://github.com/omegaup/omegaup/pull/9998">#9998</a> is the keystone. It is one small helper that a job wraps its <code>main()</code> with:</p>
+
+<div class="tw"><table><tbody><tr><td class="mono" style="white-space:pre;font-size:12.5px;line-height:1.7">with lib.runner.run(parser.prog, args) as cron_run:
+    with cron_run.phase('update_users_stats'):
+        update_users_stats(...)
+    cron_run.set_rows_affected(rows)</td></tr></tbody></table></div>
+
+<p>On the way in it checks whether the registry says this job is switched off, takes a lock, and writes a row saying the job has started. On the way out it records the outcome, the duration, the per step timings and any error, then releases the lock.</p>
+
+<h4>Why the lock lives in the database</h4>
+<p>These jobs can run on different machines, so a lock file on one machine's disk means nothing to a job on another. The database is the one thing they all share. It also solved the thing I was most worried about: if a job dies while holding the lock, the database ties that lock to the connection, so when the process dies the lock releases by itself. A crash cannot jam the door shut forever, and I did not write a line of code for that. Choosing the database as the place gave it to me.</p>
+
+<h4>Why the history stores a name, not an id</h4>
+<p>Juan Pablo asked about this in review, and the textbook answer is that I should store the id. Three reasons I did not. The runner writes the "started" row before it ever touches the registry, using the script's own name. Some jobs that use the runner are not in the registry at all, and if the history demanded a registry id those runs either could not be recorded or the runner would start creating registry rows by itself, which turns a curated list into one that fills itself with junk. And this is a history table, so it should survive a job being renamed or removed.</p>
+<div class="quote">Thanks for the clarification and for documenting the rationale. LGTM!<cite>Juan Pablo, after I moved the reasoning into the schema itself rather than leaving it in a review thread</cite></div>
+
+<h3>A rerun button that does not open a door</h3>
+<p><a href="https://github.com/omegaup/omegaup/pull/10021">#10021</a> is the one I thought hardest about. The obvious version is that the button sends a request and the server runs the job. I deliberately did not do that. The moment a web page can cause a program to run on your servers you have built a door, and doors get picked.</p>
+<p>Instead the button <strong>writes down a request</strong>. A separate trusted worker, already running on the inside, picks that row up and runs the job, and only jobs on a fixed list it knows about. The web page never runs anything, it leaves a note. Two things fall out for free: every rerun is recorded, so you can see who asked for what and when, and the person pressing the button needs no server access, which was the entire point.</p>
+
+<h3>A guardrail on the rankings</h3>
+<p><a href="https://github.com/omegaup/omegaup/pull/10011">#10011</a> checks the freshly computed ranking before it is published, inside the same transaction. If it is empty, if scores have gone negative, or if more than half the previously ranked users have vanished, it raises and the whole thing rolls back.</p>
+<div class="note win"><strong>The framing I keep coming back to:</strong> I would rather have yesterday's rankings than today's broken ones.</div>
+<p>I proved that rather than asserting it. I ran the real job against a seeded database twice. On the happy path it logs that the audit passed and exits zero. On a forced failure it raises, exits non zero, and the checksum of the rankings table is identical before and after, which is what "the rollback left the data untouched" actually means.</p>
+
+<h3>The page</h3>
+<p><a href="https://github.com/omegaup/omegaup/pull/10008">#10008</a> puts <code>/admin/crons</code> on top of the API, and <a href="https://github.com/omegaup/omegaup/pull/10048">#10048</a> makes it readable: a health card per job with its success rate and average duration, filters, "2 hours ago" style times with the exact timestamp on hover, job names shown as "Update rankings" rather than <code>update_ranks.py</code> and schedules as "Every day at 08:19" rather than <code>19 8 * * *</code>, with the technical value kept on hover in both cases.</p>
+</section>
+
+<hr>
+
+<section id="p2">
+<div class="eyebrow">Project 2 &middot; parent issue <a href="https://github.com/omegaup/omegaup/issues/10049">#10049</a></div>
+<h2>Scheduled recommendation model training</h2>
+
+<p>omegaUp has a model that answers "this student just solved problem X, what should they try next". Before this work it was an on demand script. Nobody was on the hook for running it, there was no record of what any past training produced, and a bad run would silently overwrite the good model file that was serving real students.</p>
+
+<p>Now every run writes down how good the model it produced was, using a MAP score. That is a single number between zero and one measuring how often the problem the model suggested next turned out to be one the student actually solved, weighted so a good suggestion near the top of the list counts for more. Higher is better. On the dashboard I put that explanation behind an info icon in those exact words, because no admin should be expected to know the term.</p>
+
+<p>The guardrail applies two rules before the model file is written. An absolute floor, so a model below a minimum score never ships. And a regression bar against the <strong>last published</strong> model, because the floor on its own only catches disasters: a model that squeaks over the bar while being clearly worse than the one it replaces would sail straight through.</p>
+
+<figure>
+  <img src="assets/cron-dashboard-model-quality.png" alt="The recommendation model quality table on the admin dashboard, showing one model published with a MAP score of 0.3419 and one refused at 0.2151 with the reason recorded.">
+  <figcaption>The guardrail working. One model published at 0.3419. One refused at 0.2151, with the reason recorded rather than hidden.</figcaption>
+</figure>
+
+<p>When either rule fires the old model file stays exactly where it is, a row is stored with the reason in plain words, and the run is marked as a failure so it is visible rather than silent.</p>
+
+<div class="note warn"><strong>What I deliberately did not build.</strong> Model versioning and rollback was the obvious next step, and I left it alone. The model file layout and the serving side live in omegaUp's production repository rather than this one, so building it blind risked doing it wrong. I wrote the question up for my mentor instead.</div>
+</section>
+
+<hr>
+
+<section id="p3">
+<div class="eyebrow">Project 3 &middot; parent issue <a href="https://github.com/omegaup/omegaup/issues/10064">#10064</a></div>
+<h2>Automated problem health checks</h2>
+
+<p>A problem on omegaUp can stop working after it is published, and nothing errors loudly. Students just hit a wall. Until now the only signal was somebody filing a report, which means the platform found out about broken problems from the people it had already failed.</p>
+
+<p>The job runs nightly and looks for four specific things.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Check</th><th>Severity</th><th>What it means</th></tr></thead>
+<tbody>
+<tr><td class="mono">judge_errors</td><td><span class="s c">error</span></td><td>Five or more recent submissions to one problem came back as a judge or validator error. Students are submitting correct code and getting a system failure. The worst one, because to the student it looks like their fault.</td></tr>
+<tr><td class="mono">no_languages</td><td><span class="s c">error</span></td><td>A public problem with no submission languages enabled. Listed, browsable, and impossible to submit to.</td></tr>
+<tr><td class="mono">never_solved</td><td><span class="s d">warning</span></td><td>Public, twenty or more submissions, zero accepted. Either the test data is wrong or the statement is misleading. A warning rather than an error, because a genuinely brutal problem can look like this.</td></tr>
+<tr><td class="mono">deprecated_public</td><td><span class="s d">warning</span></td><td>Retired, but still visible to students.</td></tr>
+</tbody></table></div>
+
+<p>How the findings are stored matters as much as the checks. Each one is upserted against a unique key on the problem and the check type, so it keeps the date it was <strong>first</strong> detected. That is the difference between "this is broken" and "this has been broken for three weeks". Running the job twice produces no duplicates, and a finding that stops appearing is marked resolved rather than deleted, so the history survives.</p>
+
+<p>I built it database only, with no access to the problem files. Those sit behind a service that needs signed authentication, and they are already validated when a problem is uploaded. The breakage this job catches happens <em>after</em> that, which is exactly what the database knows about. So it needed no new infrastructure, and no dashboard code either.</p>
+</section>
+
+<hr>
+
+<section id="scope">
+<div class="eyebrow">Honesty about scope</div>
+<h2>What I proposed, and how it grew</h2>
+
+<p>My proposal was narrow. It was mostly about cleaning up four Python scripts: five specific SQL problems, the near total absence of unit tests, fourteen bare <code>except:</code> blocks, some magic numbers, badge atomicity, and a <code>NOW()</code> string replacement. The test situation was the starkest part. When I wrote it, two of the four scripts had <strong>zero</strong> Python unit tests between them.</p>
+
+<p>Three honest things happened to that proposal.</p>
+
+<h3>Eight items were solved by other contributors</h3>
+<p>Before or during my coding period, eight of my proposal items were merged by other people. The correlated subquery rewrite I had planned for week four, for instance, was merged by someone else before I got there. I verified each against main and re-scoped rather than redoing finished work, and tracked the active lanes I needed to stay out of so I would not collide with people working on school of the month, incremental feedback aggregation, or the New Relic integration.</p>
+
+<h3>One item was wrong, and I killed it myself</h3>
+<p>My proposal committed to rebuilding the rankings in a second table and swapping it in with <code>RENAME TABLE</code>. When I researched it properly in June I found five problems with it, and worse, the problem it was meant to solve had already been fixed by somebody else. So I withdrew my own funded proposal item and replaced it with an upsert (<a href="https://github.com/omegaup/omegaup/pull/9903">#9903</a>). Details in <a href="#challenges">Challenges</a>.</p>
+
+<h3>One item did not exist</h3>
+<p>Proposal problem 5, duplicate badge notifications, I could not reproduce. The per badge commit and rollback that had landed in an earlier pull request already rolls back the badge and its notification together, so the scenario does not happen. I recorded that as a finding rather than inventing a fix for it.</p>
+
+<h3>Then the midterm changed the shape of the second half</h3>
+<p>I passed the midterm, and the feedback was that the work so far did not add up to one thing you could point at. It was many small, individually useful improvements. What was wanted was something vertical: one project cutting through the database, the backend, the jobs, the interface and the tests, where the result is a feature somebody can actually see.</p>
+
+<p>That was fair. Rather than pick the next project alone, I read omegaUp's production deployment repository to find out what was actually true, wrote up fourteen candidate projects, and sent them to my mentor with the note that I was not attached to any of them and would rather know what the organisation needed.</p>
+
+<div class="quote">the highest priority is building a Cron Control Plane. Today our cron infrastructure lacks visibility and operational tooling... After that, automated problem health checks and scheduled training for the recommendation model.<cite>Juan Pablo, choosing the direction for the second half</cite></div>
+
+<p>So the second half became three projects sharing one foundation. None of the first half was wasted, because a vertical project needs exactly that kind of groundwork underneath it.</p>
+</section>
+
+<hr>
+
+<section id="other">
+<div class="eyebrow">Alongside the main project</div>
+<h2>Work outside the cron project</h2>
+
+<h3>A generic "view unavailable" component</h3>
+<p><a href="https://github.com/omegaup/omegaup/pull/9919">#9919</a>. omegaUp needed a consistent way to tell a user that part of the site is switched off. Rather than write that message into one page, I built one component the whole platform can use, in every supported language. Juan Pablo then pointed out that the way I had wired it in would mean copying a file every time another view needed disabling, so <a href="https://github.com/omegaup/omegaup/pull/10025">#10025</a> made the entry point generic and driven by the page payload.</p>
+<div class="grid2">
+  <figure><img src="assets/view-unavailable-es.png" alt="The view unavailable component in Spanish"><figcaption>Spanish</figcaption></figure>
+  <figure><img src="assets/view-unavailable-en.png" alt="The view unavailable component in English"><figcaption>English</figcaption></figure>
+</div>
+
+<h3>Rebuilding the navigation from one configuration</h3>
+<p><a href="https://github.com/omegaup/omegaup/pull/9968">#9968</a>, building on <a href="https://github.com/omegaup/omegaup/pull/9871">#9871</a> and <a href="https://github.com/omegaup/omegaup/pull/9801">#9801</a>. The navbar menus were hand written markup repeated per menu. I extracted a reusable item with an icon, a title and a description, then rebuilt every menu from a single configuration file with per entry visibility rules, which is the groundwork for showing different entries to different kinds of user.</p>
+<div class="grid2">
+  <figure><img src="assets/navbar-contests-menu.png" alt="Contests menu with icons and descriptions"><figcaption>Contests</figcaption></figure>
+  <figure><img src="assets/navbar-courses-menu.png" alt="Courses menu"><figcaption>Courses</figcaption></figure>
+  <figure><img src="assets/navbar-problems-menu.png" alt="Problems menu"><figcaption>Problems</figcaption></figure>
+  <figure><img src="assets/navbar-ranking-menu.png" alt="Ranking menu"><figcaption>Ranking</figcaption></figure>
+  <figure><img src="assets/navbar-help-menu.png" alt="Help menu"><figcaption>Help</figcaption></figure>
+  <figure><img src="assets/navbar-profile-menu.png" alt="Profile menu"><figcaption>Profile</figcaption></figure>
+</div>
+<p>An honest footnote. <a href="https://github.com/omegaup/omegaup/pull/9967">#9967</a> was the earlier version of that change and I closed it myself: #9968 was stacked on top of it and got squash merged first, which carried #9967's content into main and left nothing for it to do.</p>
+</section>
+
+<hr>
+
+<section id="prs">
+<div class="eyebrow">The work, itemised</div>
+<h2>Every pull request</h2>
+<p class="lede">Thirty one pull requests between 26 May and 3 August. Each one has an issue written before it.</p>
+<div class="note"><strong>On the file counts.</strong> The control plane pull requests are stacked, each built on the one before it, so GitHub's diff for a later one still carries its unmerged predecessors. One of them shows 54 files but adds three of its own. Each shrinks to just its own change once the one below it merges, which is how the merged ones got down to two and six files.</div>
+<h3>Cron Control Plane</h3><div class="tw"><table><thead><tr><th>PR</th><th>Opened</th><th>Status</th><th>Change</th><th>What it does</th></tr></thead><tbody>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9995">#9995</a></td><td>2026-07-13</td><td><span class="s m">merged</span></td><td class="mono">+64/-0</td><td>add cron control plane tables</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9996">#9996</a></td><td>2026-07-13</td><td><span class="s m">merged</span></td><td class="mono">+1345/-3</td><td>add cron control plane dao</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9998">#9998</a></td><td>2026-07-13</td><td><span class="s o">open</span></td><td class="mono">+497/-0</td><td>add cron runner library</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10000">#10000</a></td><td>2026-07-13</td><td><span class="s m">merged</span></td><td class="mono">+333/-0</td><td>add cron admin api</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10003">#10003</a></td><td>2026-07-14</td><td><span class="s o">open</span></td><td class="mono">+522/-35</td><td>record update ranks runs</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10008">#10008</a></td><td>2026-07-14</td><td><span class="s o">open</span></td><td class="mono">+548/-0</td><td>add cron admin dashboard</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10009">#10009</a></td><td>2026-07-14</td><td><span class="s o">open</span></td><td class="mono">+545/-89</td><td>record badges and feedback runs</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10011">#10011</a></td><td>2026-07-15</td><td><span class="s o">open</span></td><td class="mono">+580/-35</td><td>add ranking audit guardrail</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10021">#10021</a></td><td>2026-07-16</td><td><span class="s o">open</span></td><td class="mono">+3306/-3</td><td>add cron rerun</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10022">#10022</a></td><td>2026-07-16</td><td><span class="s o">open</span></td><td class="mono">+602/-132</td><td>record remaining cron runs</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10023">#10023</a></td><td>2026-07-16</td><td><span class="s o">open</span></td><td class="mono">+3336/-3</td><td>add cron dashboard e2e</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10048">#10048</a></td><td>2026-07-26</td><td><span class="s o">open</span></td><td class="mono">+4438/-3</td><td>improve cron dashboard with health cards filters and auto refresh</td></tr>
+</tbody></table></div>
+<h3>Cron tests, queries and reliability</h3><div class="tw"><table><thead><tr><th>PR</th><th>Opened</th><th>Status</th><th>Change</th><th>What it does</th></tr></thead><tbody>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9883">#9883</a></td><td>2026-06-02</td><td><span class="s o">open</span></td><td class="mono">+542/-0</td><td>feat(cron): add unit test infrastructure and aggregate_feedback/utils tests</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9889">#9889</a></td><td>2026-06-07</td><td><span class="s o">open</span></td><td class="mono">+942/-23</td><td>feat(cron): add update_ranks unit tests</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9900">#9900</a></td><td>2026-06-12</td><td><span class="s m">merged</span></td><td class="mono">+22/-30</td><td>fix(cron): parameterize coder_of_the_month queries</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9901">#9901</a></td><td>2026-06-12</td><td><span class="s m">merged</span></td><td class="mono">+16/-16</td><td>fix(cron): replace bare except clauses with typed except</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9903">#9903</a></td><td>2026-06-12</td><td><span class="s m">merged</span></td><td class="mono">+38/-2</td><td>fix(cron): merge user rank with upsert instead of full reinsert</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9914">#9914</a></td><td>2026-06-19</td><td><span class="s o">open</span></td><td class="mono">+203/-80</td><td>add structured phase logging to crons</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9920">#9920</a></td><td>2026-06-21</td><td><span class="s o">open</span></td><td class="mono">+1146/-23</td><td>feat(cron): add assign_badges unit tests</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9940">#9940</a></td><td>2026-06-26</td><td><span class="s m">merged</span></td><td class="mono">+29/-15</td><td>refactor(cron): name acl/role magic numbers with constants</td></tr>
+</tbody></table></div>
+<h3>Recommendation model training</h3><div class="tw"><table><thead><tr><th>PR</th><th>Opened</th><th>Status</th><th>Change</th><th>What it does</th></tr></thead><tbody>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10050">#10050</a></td><td>2026-07-27</td><td><span class="s o">open</span></td><td class="mono">+3957/-133</td><td>add recommendation model runs table</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10051">#10051</a></td><td>2026-07-27</td><td><span class="s o">open</span></td><td class="mono">+4314/-134</td><td>record and guard recommendation training</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10052">#10052</a></td><td>2026-07-27</td><td><span class="s o">open</span></td><td class="mono">+4908/-133</td><td>add recommendation model dao and dashboard</td></tr>
+</tbody></table></div>
+<h3>Problem health checks</h3><div class="tw"><table><thead><tr><th>PR</th><th>Opened</th><th>Status</th><th>Change</th><th>What it does</th></tr></thead><tbody>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10065">#10065</a></td><td>2026-07-31</td><td><span class="s m">merged</span></td><td class="mono">+34/-0</td><td>add problem health checks table</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10066">#10066</a></td><td>2026-08-01</td><td><span class="s o">open</span></td><td class="mono">+4394/-133</td><td>add problem health check cron</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10069">#10069</a></td><td>2026-08-03</td><td><span class="s o">open</span></td><td class="mono">+5157/-133</td><td>show problem health findings for admins</td></tr>
+</tbody></table></div>
+<h3>Alongside the main project</h3><div class="tw"><table><thead><tr><th>PR</th><th>Opened</th><th>Status</th><th>Change</th><th>What it does</th></tr></thead><tbody>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9871">#9871</a></td><td>2026-05-26</td><td><span class="s m">merged</span></td><td class="mono">+352/-150</td><td>Extract NavbarItem component for help menu</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9919">#9919</a></td><td>2026-06-21</td><td><span class="s m">merged</span></td><td class="mono">+142/-0</td><td>add view unavailable component</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9967">#9967</a></td><td>2026-07-04</td><td><span class="s c">closed</span></td><td class="mono">+368/-67</td><td>extend navbar item style to remaining submenus</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/9968">#9968</a></td><td>2026-07-04</td><td><span class="s m">merged</span></td><td class="mono">+676/-233</td><td>build navbar menus from a single configuration</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/pull/10025">#10025</a></td><td>2026-07-16</td><td><span class="s m">merged</span></td><td class="mono">+25/-6</td><td>make view unavailable entrypoint generic</td></tr>
+</tbody></table></div>
+</section>
+
+<hr>
+
+<section id="issues">
+<div class="eyebrow">The work, itemised</div><h2>Every issue</h2>
+<p class="lede">Thirty issues. I wrote the issue before the pull request every time, which is how the three parent issues ended up being the spine of the whole second half.</p>
+<div class="tw"><table><thead><tr><th>Issue</th><th>Opened</th><th>Status</th><th>Title</th></tr></thead><tbody>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9868">#9868</a></td><td>2026-05-26</td><td><span class="s m">closed</span></td><td>As a developer, I want a reusable NavbarItem component so that submenu entries are easier to maintain</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9869">#9869</a></td><td>2026-05-26</td><td><span class="s m">closed</span></td><td>As a contributor, I want editable fields in the feature request form so that I can fill in the As a / I want / so that prompts directly</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9870">#9870</a></td><td>2026-05-26</td><td><span class="s m">closed</span></td><td>Refactor navbar help submenu into a reusable NavbarItem component</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9882">#9882</a></td><td>2026-06-02</td><td><span class="s o">open</span></td><td>Add unit test infrastructure for cron scripts</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9888">#9888</a></td><td>2026-06-07</td><td><span class="s o">open</span></td><td>Add unit tests for update_ranks.py ranking logic</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9890">#9890</a></td><td>2026-06-07</td><td><span class="s o">open</span></td><td>Add unit tests for assign_badges.py</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9897">#9897</a></td><td>2026-06-11</td><td><span class="s m">closed</span></td><td>Add a generic &quot;View unavailable&quot; component</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9899">#9899</a></td><td>2026-06-12</td><td><span class="s m">closed</span></td><td>Parameterize string-built queries in coder_of_the_month.py</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9902">#9902</a></td><td>2026-06-12</td><td><span class="s m">closed</span></td><td>Avoid full delete and reinsert of User_Rank in update_ranks</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9904">#9904</a></td><td>2026-06-12</td><td><span class="s o">open</span></td><td>Prevent and merge duplicate school profiles</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9913">#9913</a></td><td>2026-06-19</td><td><span class="s o">open</span></td><td>Emit structured per-phase logs from cron scripts</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9939">#9939</a></td><td>2026-06-26</td><td><span class="s m">closed</span></td><td>Replace acl_id/role_id magic numbers in cron scripts with named constants</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9962">#9962</a></td><td>2026-07-03</td><td><span class="s o">open</span></td><td>Extend the navbar item style with icons and descriptions to remaining submenus</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9966">#9966</a></td><td>2026-07-04</td><td><span class="s m">closed</span></td><td>Build the navbar menus from a single configuration with visibility rules</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9992">#9992</a></td><td>2026-07-13</td><td><span class="s o">open</span></td><td>Cron Control Plane : an observability and operational tooling for background jobs <strong>(parent)</strong></td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9993">#9993</a></td><td>2026-07-13</td><td><span class="s m">closed</span></td><td>persistant cron execution history by registry and run tables</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9994">#9994</a></td><td>2026-07-13</td><td><span class="s m">closed</span></td><td>DAOs for the cron tables</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9997">#9997</a></td><td>2026-07-13</td><td><span class="s o">open</span></td><td>Reusable cron runner that records runs and prevents overlap</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/9999">#9999</a></td><td>2026-07-13</td><td><span class="s m">closed</span></td><td>Admin API for cron run history and health</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10002">#10002</a></td><td>2026-07-14</td><td><span class="s o">open</span></td><td>Record update_ranks executions through the runner</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10004">#10004</a></td><td>2026-07-14</td><td><span class="s o">open</span></td><td>Admin dashboard page for cron jobs</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10007">#10007</a></td><td>2026-07-14</td><td><span class="s o">open</span></td><td>Record assign_badges and aggregate_feedback through the runner</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10010">#10010</a></td><td>2026-07-15</td><td><span class="s o">open</span></td><td>Pre-publish guardrail for the ranking job</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10017">#10017</a></td><td>2026-07-16</td><td><span class="s m">closed</span></td><td>Make the view unavailable entrypoint generic and driven by the payload</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10018">#10018</a></td><td>2026-07-16</td><td><span class="s o">open</span></td><td>Let admins safely rerun a cron job</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10019">#10019</a></td><td>2026-07-16</td><td><span class="s o">open</span></td><td>Record the remaining crons through the runner</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10020">#10020</a></td><td>2026-07-16</td><td><span class="s o">open</span></td><td>End to end test for the cron dashboard</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10047">#10047</a></td><td>2026-07-26</td><td><span class="s o">open</span></td><td>Improve the cron dashboard with health cards, filters, relative times and auto refresh</td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10049">#10049</a></td><td>2026-07-26</td><td><span class="s o">open</span></td><td>Make the recommendation model training scheduled, recorded and guarded <strong>(parent)</strong></td></tr>
+<tr><td><a href="https://github.com/omegaup/omegaup/issues/10064">#10064</a></td><td>2026-07-31</td><td><span class="s o">open</span></td><td>Detect problems that silently stopped working <strong>(parent)</strong></td></tr>
+</tbody></table></div></section>
+
+<hr>
+
+<section id="practice">
+<div class="eyebrow">Reflection</div>
+<h2>How I worked</h2>
+
+<h3>Tests before the thing that needs them</h3>
+<p>The cron scripts had no test infrastructure at all when I started. Not thin coverage, none. There was a good reason it had been skipped: these scripts talk straight to the database, so testing "does the ranking logic compute the right order" meant standing up a database with the right data in it first. Slow, awkward, breaks on other people's machines. So it never got done.</p>
+<p>I built a fake database instead (<a href="https://github.com/omegaup/omegaup/pull/9883">#9883</a>), one that behaves enough like the real thing that the existing code runs against it unchanged. Only then could the ranking and badge logic be tested.</p>
+
+<div class="note">
+<strong>Why this is not box ticking.</strong> Look at what I built later: a button that reruns jobs, and a guardrail that decides whether data goes live. Both are only safe if one property holds, which is that running a job twice leaves things exactly as running it once did. If that is true, a rerun is harmless and the button is a feature. If it is not, the button is a way to corrupt production data with one click and I should not have built it. The chain is: no fake database, no tests, no proof, and the rerun button is irresponsible.
+</div>
+
+<h3>Small stacked pull requests, opened one at a time</h3>
+<div class="quote">How about splitting this into multiple PRs? The first could include all the database schema changes... that would make things much easier to review.<cite>Juan Pablo, on a pull request that was doing too much</cite></div>
+<p>I restructured everything into a stack: tables, then the code that reads them, then the API, then the page, each small enough to review in one sitting. I also learned to keep the later ones as drafts until their predecessor merges, so nobody opens a pull request full of code they already reviewed. That habit came from getting it wrong once: a stacked pull request got squash merged out of order, which dragged its dependency into main and made that dependency redundant.</p>
+<p>The lesson I actually took: <strong>reviewer time is the scarcest resource on the project</strong>, and optimising my work for my convenience against their attention is a bad trade.</p>
+
+<h3>Answering reviews properly</h3>
+<p>Ankit left thirteen inline comments on my test infrastructure, and several were real bugs in the fake database itself. <code>fetchone()</code> did not advance, so it returned the first row forever and any test looping over results would have passed while testing nothing. SQL matching was case sensitive in one direction. The <code>dictionary</code> argument was accepted and thrown away.</p>
+<div class="note warn"><strong>A fake that is subtly wrong is worse than no fake</strong>, because the tests built on it pass for the wrong reason and hand you false confidence.</div>
+<p>One flagged bug I checked and pushed back on, politely, after tracing it to the real caller and finding it unreachable behind a guard. I documented it as latent rather than patching something that could not happen.</p>
+</section>
+
+<hr>
+
+<section id="challenges">
+<div class="eyebrow">Reflection</div>
+<h2>Challenges</h2>
+
+<h3>The shadow table swap I promised was wrong</h3>
+<p>My proposal committed to rebuilding the rankings in a second table and swapping it in with <code>RENAME TABLE</code>. When I actually researched it, I found five problems. It is a schema change, so it forces a commit and breaks the single transaction the phase relies on. Copying a table does not copy its foreign key constraints, and the names are database unique, so the swapped table either silently loses three constraints or needs alternating names. It needs privileges the production database user may not have, and I could not verify that. It changes what the coder of the month calculation sees mid run. And it still rewrites every row every day, so the churn is not reduced, just relocated.</p>
+<p>Worse, the problem it was meant to solve had already been fixed by someone else. The phase had become a single transaction, and readers already see the complete old ranking throughout. The "users see an empty leaderboard" scenario I wrote the proposal against no longer existed.</p>
+<p>So I killed my own proposal item and replaced it with an upsert that stays inside the transaction, needs no privileges, keeps the foreign keys, and follows a pattern already used elsewhere in the same file. I would rather have that conversation than deliver the thing I promised and have it be wrong.</p>
+
+<h3>Two required checks that wanted opposite things</h3>
+<p>After the tables merged, the next pull request started failing in a way I could not resolve. One check demanded a generated schema file be byte identical to the main schema. Another check crashed trying to read that same file. Both were required, so satisfying one broke the other.</p>
+<p>The crash was at one specific table, caused by a full text index clause another contributor had recently added that the schema parser did not understand. Nobody had hit it because main's copy of the generated file was out of date and did not contain that line yet. Mine was the first change to regenerate it, so I was the first to stand on a landmine that had been sitting there. The fix was one line in the parser, verified by regenerating everything and confirming the output was byte identical, so the change only relaxes reading and cannot alter what gets generated.</p>
+<div class="note"><strong>When two automated checks disagree, the disagreement is usually pointing at something real.</strong></div>
+
+<h3>A bug that only writing the test revealed</h3>
+<p>In the health checks, the step that closes resolved findings was reading the clock <em>after</em> writing the new ones. On a slow run, a finding written moments earlier could be judged "not seen this run" and closed immediately, so the job would report a problem as fixed the instant it found it. The fix was to take one timestamp for the whole run. This is the strongest argument for tests I have from this project, because the bug was in code I had just written and believed was correct.</p>
+
+<h3>"No results" and "not working" look identical from the outside</h3>
+<p>Three of the four health checks fired on the first real run. The judge errors check found nothing, and my first reaction was "good, no broken judges". That was wrong. It found nothing because the development database contained no runs with that kind of error at all, so the check had never been exercised. I was about to ship a check I had never seen work. I seeded the failure case and watched it fire before I trusted it.</p>
+
+<h3>The bookkeeping cost of stacking</h3>
+<p>Keeping the pieces small and ordered is right for reviewers and expensive for me. Every time something merges I rebase the next one so its diff stands alone. When the tables merged the migration was renumbered, so every later database change had to shift too. At one point a change to a shared file had to be propagated across <strong>seventeen branches</strong>, because they all descended from it. I still think the trade is correct, since the alternative is unreviewable pull requests, but I underestimated the admin.</p>
+
+<h3>Nothing merged for the first five weeks</h3>
+<p>At the midterm, zero of my cron project pull requests had been merged. Everything had green checks and was waiting. That was uncomfortable and not something I could fix by writing more code. My mentors were clear that review bandwidth was the constraint and told me to keep building. The first one landed on 3 July, and sixteen more have landed since.</p>
+</section>
+
+<hr>
+
+<section id="status">
+<div class="eyebrow">Where things stand</div>
+<h2>Merged, in review, and waiting</h2>
+<p class="lede">A report that only lists what landed is not much use, so here is all of it.</p>
+
+<h3>Merged</h3>
+<p>Seventeen of my pull requests merged during the coding period. On the cron project specifically, the whole foundation is now on main: the registry and history tables, the data access layer, the admin API, the problem health checks table, the ranking upsert, the SQL parameterisation, the typed exception handling and the acl and role constants.</p>
+
+<h3>Approved, waiting on a merge</h3>
+<p><a href="https://github.com/omegaup/omegaup/pull/9998">#9998</a>, the shared runner, is approved and green. It is also the keystone: four more pull requests sit directly behind it, so merging it unblocks the largest single batch of work.</p>
+
+<h3>Green and ready for review</h3>
+<p><a href="https://github.com/omegaup/omegaup/pull/9883">#9883</a>, <a href="https://github.com/omegaup/omegaup/pull/9889">#9889</a>, <a href="https://github.com/omegaup/omegaup/pull/9920">#9920</a>, <a href="https://github.com/omegaup/omegaup/pull/9914">#9914</a>, <a href="https://github.com/omegaup/omegaup/pull/10003">#10003</a> and <a href="https://github.com/omegaup/omegaup/pull/10008">#10008</a>, all mergeable with passing checks.</p>
+
+<h3>Built, tested, waiting their turn</h3>
+<p>Eleven more are open as drafts, kept that way on purpose so they surface one at a time as the pull request below each of them merges. Every one has been run locally and verified end to end in Docker.</p>
+
+<p>What sets the pace now is review time rather than code. I do not say that as a complaint, it is a real constraint on a volunteer maintained project and my mentors have been straight with me about it. Nothing is half built, and nothing is blocked on me.</p>
+</section>
+
+<hr>
+
+<section id="next">
+<div class="eyebrow">Future work</div>
+<h2>What comes next</h2>
+<div class="cards">
+  <div class="card"><div class="k b">First</div><h4>Missed run detection</h4><p>The system can tell you a job failed, but not that a job never started. That is the one failure mode run history structurally cannot catch, and it is what every cron monitoring product leads with. The schedule is already stored, so the pieces are there.</p></div>
+  <div class="card"><div class="k v">Then</div><h4>Failure alerting</h4><p>Notify admins when a run records a failure, reusing the notification path the rerun dispatcher already uses. This is the piece that turns history into monitoring.</p></div>
+  <div class="card"><div class="k g">Then</div><h4>Retention</h4><p>Nothing deletes from the run history. Fine today, not in two years.</p></div>
+</div>
+<p>Smaller things: pagination past the fifty run cap, a duration sparkline per job to spot slowdowns as a shape rather than a number, and a next scheduled run column computed from the schedule already stored. And the one I deliberately left alone, model versioning and rollback, which needs a maintainer decision about the production file layout before it is worth writing.</p>
+
+<hr>
+
+<h2>Thanks</h2>
+<p><strong>Juan Pablo</strong>, for reviews that were consistently specific and for pushing back on the parts that deserved it. The question about storing a name instead of an id made the schema better, and the request to split a large pull request changed how I work rather than just how I structured that one change.</p>
+<p><strong>Ankit</strong>, for the review of my test infrastructure that found real bugs in it. Being told early and precisely that my fake database was subtly wrong was worth more than any approval.</p>
+<p><strong>omegaUp</strong>, for letting a contributor propose a direction, argue for it with evidence, and then actually build it.</p>
+</section>
+
+</main>
+
+<script>
+const secs=[...document.querySelectorAll('section[id]')];
+const links=[...document.querySelectorAll('.nav a')];
+const byId=Object.fromEntries(links.map(a=>[a.getAttribute('href').slice(1),a]));
+const obs=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      links.forEach(a=>a.classList.remove('on'));
+      const a=byId[e.target.id]; if(a)a.classList.add('on');
+    }
+  });
+},{rootMargin:'-10% 0px -80% 0px',threshold:0});
+secs.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>
