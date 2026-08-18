@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="720" viewBox="0 0 1500 720">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#8c959f"/></marker></defs>
+<rect x="0" y="0" width="1500" height="720" rx="0" fill="#ffffff" stroke="none" stroke-width="0" opacity="1"/>
+<text x="750.0" y="32" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#1f2328" text-anchor="middle">omegaUp Cron Control Plane</text>
+<text x="750.0" y="52" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" font-weight="normal" fill="#57606a" text-anchor="middle">one shared runner, every background job — GSoC 2026, Prasanna Mishra</text>
+<rect x="30" y="70" width="300" height="455" rx="8" fill="#dae8fc" stroke="none" stroke-width="1.5" opacity="0.25"/>
+<text x="44" y="90" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="10.5" font-weight="700" fill="#24292f" text-anchor="start">SCHEDULED JOBS</text>
+<rect x="370" y="70" width="290" height="455" rx="8" fill="#ffe6cc" stroke="none" stroke-width="1.5" opacity="0.25"/>
+<text x="384" y="90" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="10.5" font-weight="700" fill="#24292f" text-anchor="start">SHARED RUNNER  #9998</text>
+<rect x="700" y="70" width="270" height="455" rx="8" fill="#d5e8d4" stroke="none" stroke-width="1.5" opacity="0.25"/>
+<text x="714" y="90" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="10.5" font-weight="700" fill="#24292f" text-anchor="start">STORAGE  #9995 #9996</text>
+<rect x="1010" y="70" width="460" height="455" rx="8" fill="#e1d5e7" stroke="none" stroke-width="1.5" opacity="0.25"/>
+<text x="1024" y="90" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="10.5" font-weight="700" fill="#24292f" text-anchor="start">ADMIN API AND PAGE</text>
+<rect x="48" y="104" width="264" height="44" rx="6" fill="#ffffff" stroke="#6c8ebf" stroke-width="1.5" opacity="1"/>
+<text x="180.0" y="124.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">update_ranks.py</text>
+<text x="180.0" y="140.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10003 · three phases</text>
+<rect x="48" y="172" width="264" height="44" rx="6" fill="#ffffff" stroke="#6c8ebf" stroke-width="1.5" opacity="1"/>
+<text x="180.0" y="192.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">assign_badges.py</text>
+<text x="180.0" y="208.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10009</text>
+<rect x="48" y="240" width="264" height="44" rx="6" fill="#ffffff" stroke="#6c8ebf" stroke-width="1.5" opacity="1"/>
+<text x="180.0" y="260.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">aggregate_feedback.py</text>
+<text x="180.0" y="276.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10009</text>
+<rect x="48" y="308" width="264" height="44" rx="6" fill="#ffffff" stroke="#6c8ebf" stroke-width="1.5" opacity="1"/>
+<text x="180.0" y="328.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">build_problem_rec_model.py</text>
+<text x="180.0" y="344.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10022 · project 2</text>
+<rect x="48" y="376" width="264" height="44" rx="6" fill="#ffffff" stroke="#6c8ebf" stroke-width="1.5" opacity="1"/>
+<text x="180.0" y="396.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">plagiarism_detector.py</text>
+<text x="180.0" y="412.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10022</text>
+<rect x="48" y="444" width="264" height="44" rx="6" fill="#ffffff" stroke="#6c8ebf" stroke-width="1.5" opacity="1"/>
+<text x="180.0" y="464.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">problem_health_check.py</text>
+<text x="180.0" y="480.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10066 · project 3</text>
+<rect x="388" y="104" width="254" height="38" rx="6" fill="#fff8e6" stroke="#d79b00" stroke-width="1.5" opacity="1"/>
+<text x="515.0" y="127.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12.5" font-weight="700" fill="#1f2328" text-anchor="middle">lib/runner.py</text>
+<rect x="388" y="154" width="254" height="50" rx="6" fill="#ffffff" stroke="#d6b656" stroke-width="1.5" opacity="1"/>
+<text x="515.0" y="177.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">1 · check enabled flag</text>
+<text x="515.0" y="193.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">a disabled job exits 0, records nothing</text>
+<rect x="388" y="216" width="254" height="50" rx="6" fill="#ffffff" stroke="#d6b656" stroke-width="1.5" opacity="1"/>
+<text x="515.0" y="239.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">2 · GET_LOCK('cron:&lt;job&gt;')</text>
+<text x="515.0" y="255.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">no overlap, releases itself on crash</text>
+<rect x="388" y="278" width="254" height="50" rx="6" fill="#ffffff" stroke="#d6b656" stroke-width="1.5" opacity="1"/>
+<text x="515.0" y="301.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">3 · write the running row</text>
+<text x="515.0" y="317.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">so the page sees jobs in flight</text>
+<rect x="388" y="340" width="254" height="50" rx="6" fill="#ffffff" stroke="#d6b656" stroke-width="1.5" opacity="1"/>
+<text x="515.0" y="363.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">4 · time every phase</text>
+<text x="515.0" y="379.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">per step duration and status</text>
+<rect x="388" y="402" width="254" height="50" rx="6" fill="#ffffff" stroke="#d6b656" stroke-width="1.5" opacity="1"/>
+<text x="515.0" y="425.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">5 · guardrail before publish</text>
+<text x="515.0" y="441.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10011 · rollback beats bad data</text>
+<rect x="388" y="464" width="254" height="50" rx="6" fill="#ffffff" stroke="#d6b656" stroke-width="1.5" opacity="1"/>
+<text x="515.0" y="487.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">6 · record outcome, free lock</text>
+<text x="515.0" y="503.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">in a finally, always runs</text>
+<rect x="716" y="110" width="238" height="50" rx="6" fill="#ffffff" stroke="#82b366" stroke-width="1.5" opacity="1"/>
+<text x="835.0" y="133.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">Cron_Jobs</text>
+<text x="835.0" y="149.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">registry and enabled flag</text>
+<rect x="716" y="192" width="238" height="50" rx="6" fill="#ffffff" stroke="#82b366" stroke-width="1.5" opacity="1"/>
+<text x="835.0" y="215.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">Cron_Runs</text>
+<text x="835.0" y="231.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">history and phase timings</text>
+<rect x="716" y="274" width="238" height="50" rx="6" fill="#ffffff" stroke="#82b366" stroke-width="1.5" opacity="1"/>
+<text x="835.0" y="297.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">Cron_Run_Requests</text>
+<text x="835.0" y="313.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10021 · rerun queue</text>
+<rect x="716" y="356" width="238" height="50" rx="6" fill="#ffffff" stroke="#82b366" stroke-width="1.5" opacity="1"/>
+<text x="835.0" y="379.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">Recommendation_Model_Runs</text>
+<text x="835.0" y="395.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10050 · MAP history</text>
+<rect x="716" y="438" width="238" height="50" rx="6" fill="#ffffff" stroke="#82b366" stroke-width="1.5" opacity="1"/>
+<text x="835.0" y="461.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">Problem_Health_Checks</text>
+<text x="835.0" y="477.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10065 · open findings</text>
+<rect x="1030" y="110" width="250" height="50" rx="6" fill="#f6f0fa" stroke="#9673a6" stroke-width="1.5" opacity="1"/>
+<text x="1155.0" y="133.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">apiGetCrons / apiGetCronRun</text>
+<text x="1155.0" y="149.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10000 · admin only</text>
+<rect x="1030" y="180" width="250" height="44" rx="6" fill="#f6f0fa" stroke="#9673a6" stroke-width="1.5" opacity="1"/>
+<text x="1155.0" y="200.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">apiSetCronJobEnabled</text>
+<text x="1155.0" y="216.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10048</text>
+<rect x="1030" y="244" width="250" height="44" rx="6" fill="#f6f0fa" stroke="#9673a6" stroke-width="1.5" opacity="1"/>
+<text x="1155.0" y="264.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">apiRerunCron</text>
+<text x="1155.0" y="280.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10021 · POST only</text>
+<rect x="1030" y="314" width="250" height="54" rx="6" fill="#fdecec" stroke="#b85450" stroke-width="1.5" opacity="1"/>
+<text x="1155.0" y="339.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">/admin/crons</text>
+<text x="1155.0" y="355.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10008 #10048 #10052 #10069</text>
+<rect x="1030" y="394" width="250" height="48" rx="6" fill="#fff8e6" stroke="#d79b00" stroke-width="1.5" opacity="1"/>
+<text x="1155.0" y="416.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" fill="#1f2328" text-anchor="middle">cron_dispatcher.py</text>
+<text x="1155.0" y="432.0" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">#10021 · fixed allowlist</text>
+<path d="M 312 126 L 348 126 L 348 123 L 386 123" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M 312 194 L 348 194 L 348 123 L 386 123" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M 312 262 L 348 262 L 348 123 L 386 123" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M 312 330 L 348 330 L 348 123 L 386 123" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M 312 398 L 348 398 L 348 123 L 386 123" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M 312 466 L 348 466 L 348 123 L 386 123" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="330" y="545" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9" font-weight="normal" fill="#1f2328" text-anchor="middle"></text>
+<path d="M 642 123 L 678 123 L 678 135 L 714 135" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="672" y="110" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">reads enabled</text>
+<path d="M 642 210 L 678 210 L 678 192 L 714 192" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="676" y="232" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">writes each run</text>
+<path d="M 954 135 L 992 135 L 992 135 L 1028 135" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M 954 192 L 992 192 L 992 145 L 1028 145" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M 1155 160 L 1155 312" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M 1030 330 L 1000 330 L 1000 202 L 1028 202" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="985" y="265" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">toggle</text>
+<path d="M 1030 202 L 1000 202 L 1000 135 L 954 135" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="4 3"/>
+<path d="M 1155 368 L 1155 380 L 1300 380 L 1300 266 L 1282 266" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="1310" y="330" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">rerun</text>
+<path d="M 1030 266 L 1000 266 L 1000 278 L 954 278" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="990" y="300" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">leaves a note</text>
+<path d="M 835 328 L 835 470 L 1155 470 L 1155 392" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="990" y="486" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">a trusted worker picks it up</text>
+<path d="M 1030 418 L 340 418 L 340 500 L 180 500 L 180 170" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="640" y="412" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">runs the job</text>
+<path d="M 312 315 L 340 315 L 340 358 L 714 358" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="520" y="352" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">MAP and published flag</text>
+<path d="M 312 451 L 340 451 L 340 440 L 714 440" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="520" y="434" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="9.5" font-weight="normal" fill="#57606a" text-anchor="middle">findings</text>
+<path d="M 954 358 L 990 358 L 990 340 L 1028 340" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="4 3"/>
+<path d="M 954 440 L 990 440 L 990 350 L 1028 350" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="4 3"/>
+<rect x="30" y="545" width="1440" height="150" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5" opacity="1"/>
+<text x="50" y="570" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12.5" font-weight="700" fill="#1f2328" text-anchor="start">Why this shape matters</text>
+<text x="50" y="592" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="10.5" font-weight="normal" fill="#424a53" text-anchor="start">Projects 2 and 3 are just two more jobs entering through the same runner. When I built the problem health check job I wrote no dashboard code for it at all —</text>
+<text x="50" y="612" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="10.5" font-weight="normal" fill="#424a53" text-anchor="start">it runs through the runner, so it appeared on /admin/crons automatically. That is the moment the foundation paid for itself.</text>
+<text x="50" y="652" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="10.5" font-weight="normal" fill="#424a53" text-anchor="start">The web layer never launches a program. The rerun button writes a row saying someone asked for a job; a separate trusted worker, with a fixed list of jobs it will</text>
+<text x="50" y="672" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="10.5" font-weight="normal" fill="#424a53" text-anchor="start">accept, picks that row up and runs it. Every rerun is recorded, and the person pressing the button needs no server access, which was the whole point.</text>
+</svg>
